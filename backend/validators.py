@@ -134,11 +134,22 @@ def validate_reasoning(
             f"cross_path_insights should have exactly 3 items; got {len(response.cross_path_insights)}."
         )
 
-    summary_phrases = ("both paths", "each option", "each path", "pros and cons")
+    summary_phrases = ("each option has", "pros and cons", "both options", "all three options")
     if any(phrase in cross for phrase in summary_phrases):
         issues.append(
             "cross_path_insights use summary language. Write constraint-specific synthesis instead."
         )
+
+    # cross_path should reference binding constraint keywords when provided
+    if binding_constraint:
+        bc_words = [w for w in binding_constraint.lower().split() if len(w) > 4]
+        if bc_words and not any(
+            any(w in insight.lower() for w in bc_words[:4])
+            for insight in response.cross_path_insights
+        ):
+            issues.append(
+                "cross_path_insights should reference the binding constraint in at least one insight."
+            )
 
     for claim in response.claims:
         if claim.confidence in ("medium", "low") and not claim.unknown_factors:
@@ -167,6 +178,24 @@ def validate_reasoning(
 
     if len(response.paths) < 2:
         issues.append("Need at least 2 paths modeled.")
+
+    for path in response.paths:
+        if len(path.tradeoffs) < 2:
+            issues.append(f"{path.name}: need at least 2 tradeoffs.")
+        if len(path.hidden_considerations) < 2:
+            issues.append(f"{path.name}: need at least 2 hidden_considerations.")
+        if len(path.what_you_give_up) < 2:
+            issues.append(f"{path.name}: need at least 2 what_you_give_up items.")
+
+    if len(response.questions_to_ask) < 3:
+        issues.append(f"questions_to_ask should have 3–4 items; got {len(response.questions_to_ask)}.")
+
+    if len(response.claims) != 3:
+        issues.append(f"claims should have exactly 3 items; got {len(response.claims)}.")
+
+    confidences = {c.confidence for c in response.claims}
+    if len(response.claims) >= 3 and len(confidences) < 2:
+        issues.append("claims should mix confidence levels (not all the same).")
 
     if personal_constraints:
         combined_personal = " ".join(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 
 from backend.prompts import TEST_SCENARIOS
 from backend.schemas import ReasoningRequest, StructuredContext
@@ -70,10 +71,20 @@ def main() -> None:
         action="store_true",
         help="Show step-1 extraction + quality check results (uses 2-3 API calls)",
     )
+    parser.add_argument(
+        "--delay",
+        type=int,
+        default=25,
+        help="Seconds between scenarios when running 'all' with live API (rate limit safety)",
+    )
     args = parser.parse_args()
 
     if args.scenario == "all":
-        for name in TEST_SCENARIOS:
+        names = list(TEST_SCENARIOS)
+        for i, name in enumerate(names):
+            if i > 0 and not args.mock:
+                print(f"\n[waiting {args.delay}s for rate limit...]\n")
+                time.sleep(args.delay)
             run_scenario(name, what_if=args.what_if, mock=args.mock, validate=args.validate)
     else:
         run_scenario(args.scenario, what_if=args.what_if, mock=args.mock, validate=args.validate)

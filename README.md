@@ -127,7 +127,7 @@ PYTHONPATH=. python scripts/test_reasoning.py all --validate
 | `OPENAI_API_KEY` | — | Required for live reasoning |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Chat model for both LLM phases |
 | `USE_MOCK` | `false` | Return sample JSON without API calls |
-| `REASONING_MAX_RETRIES` | `2` | Auto-retry count when validation fails |
+| `REASONING_MAX_RETRIES` | `3` | Auto-retry count when validation fails |
 
 ---
 

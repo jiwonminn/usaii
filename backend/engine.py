@@ -20,7 +20,7 @@ from backend.prompts import (
 from backend.schemas import ReasoningRequest, ReasoningResponse
 from backend.validators import validate_reasoning
 
-MAX_QUALITY_RETRIES = int(os.environ.get("REASONING_MAX_RETRIES", "2"))
+MAX_QUALITY_RETRIES = int(os.environ.get("REASONING_MAX_RETRIES", "3"))
 
 
 def _use_mock_mode() -> bool:
@@ -87,7 +87,7 @@ def _extract_decision(
         user_description=request.user_description,
         structured_context=request.structured_context.model_dump(exclude_none=True),
     )
-    data = _chat_json(client, EXTRACTION_SYSTEM_PROMPT, prompt)
+    data = _chat_json(client, EXTRACTION_SYSTEM_PROMPT, prompt, temperature=0.25)
     if "properties" in data and "core_decision" not in data:
         raise RuntimeError("LLM returned JSON schema instead of extraction data. Retry the request.")
     return DecisionExtraction.model_validate(data)
@@ -109,7 +109,7 @@ def _model_tradeoffs(
         extraction=extraction.model_dump(),
         retry_issues=retry_issues,
     )
-    temp = 0.2 if retry_issues else 0.35
+    temp = 0.15 if retry_issues else 0.3
     data = _chat_json(client, SYSTEM_PROMPT, prompt, temperature=temp)
     return _attach_extraction(ReasoningResponse.model_validate(data), extraction)
 
