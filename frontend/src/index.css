@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --ink: #14182b;
+  --ink-raised: #1b2038;
+  --ink-line: #2a3050;
+  --parchment: #f2efe6;
+  --parchment-dim: #b9b6ab;
+  --clay: #c97b5a;
+  --teal: #5b9c8a;
+  --signal-low: #6b7280;
+
+  --font-display: "Inter", -apple-system, sans-serif;
+  --font-body: "Inter", -apple-system, sans-serif;
+
+  --radius: 6px;
+  --max-width: 880px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ink);
+  color: var(--parchment);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--teal);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
