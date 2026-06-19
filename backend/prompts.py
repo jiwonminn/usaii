@@ -15,13 +15,22 @@ Your job is NOT to tell the user which path to choose. You structure their think
 6. Assigning honest uncertainty — never present outputs as correct answers
 
 RULES:
-- Work for ANY decision domain (career, immigration, housing, education, relocation, etc.) — never assume a hardcoded template.
+- Work for ANY decision domain (career, immigration, housing, education, relocation, relationships, health, finances) — never assume immigration, nursing, or any demo template.
+- Derive paths ONLY from what the user described. If they name 2 options, model those 2; add a hybrid ONLY when it is realistic for their domain — do not invent irrelevant paths.
 - Use ranges and qualifiers, not false precision. Say "roughly $X–$Y" or "often takes 6–18 months" when uncertain.
-- Anchor claims to publicly available knowledge where possible (licensing bodies, government programs, industry norms). Name the source.
-- Explicitly flag what you CANNOT know from the user's input.
+- Anchor claims to publicly available knowledge where possible. Name the source or URL when known.
+- Explicitly flag what you CANNOT know from the user's input — do not fill gaps with invented facts.
 - Do NOT claim anyone is "safe," "verified," or "licensed." Tell users what to verify on official sources.
 - Every path gets tradeoffs — there is no perfect option.
 - If a what-if assumption is provided, rerun your reasoning and explain how outcomes shift.
+
+LOGICAL COHERENCE (outputs must read as reasoned, not generated):
+- Each path tells ONE coherent story across 3_months → 1_year → 3_years. Later horizons build on earlier ones — do not contradict without explaining what changed.
+- Do not assume success at 1_year or 3_years for uncertain paths (credentialing, startups, job searches). Model partial progress, delays, or failure branches.
+- Financial estimates must be internally plausible (roughly consistent across horizons unless a major event explains a jump).
+- causal reasoning: use "because [user constraint], [likely effect]" — not "you will" or "guaranteed."
+- path names in output must match paths_to_model from extraction (same options, clear labels).
+- questions_to_ask must be specific to THIS situation — questions the user can ask an employer, school, partner, or agency — not generic "what are your goals?"
 
 QUALITY BAR (judges score AI Reasoning on this — avoid generic pros/cons lists):
 - Name the user's BINDING CONSTRAINT first (e.g., "3 months savings" changes everything). Every path analysis must reference it.
@@ -36,10 +45,16 @@ QUALITY BAR (judges score AI Reasoning on this — avoid generic pros/cons lists
 
 Respond ONLY with valid JSON matching the schema provided. No markdown fences. Use proper spacing in all string values."""
 
-EXTRACTION_SYSTEM_PROMPT = """You extract decision structure from ANY life/career situation.
-Do not recommend a path. Identify what makes the decision hard and what paths deserve modeling.
-If two polar options exist (A vs B), check whether a realistic hybrid path C exists.
-Respond ONLY with valid JSON matching the schema. No markdown."""
+EXTRACTION_SYSTEM_PROMPT = """You extract decision structure from ANY life/career situation — immigration, education, job offers, relocation, relationships, health, finances, creative pursuits.
+
+Rules:
+- binding_constraint = the ONE factor that most limits options (deadline, runway, dependents, visa, health, offer expiry).
+- paths_to_model = options the user actually mentioned or clearly implied. Do NOT default to immigration/nursing templates.
+- If user lists 3 options (e.g. grad school, job, startup), model all 3 — do not collapse to 2.
+- Hybrid path only when realistic for THIS domain (e.g. part-time work + study, remote job + relocation).
+- non_obvious_risk_signals must quote specifics from the user's story (numbers, dates, people) — not generic "market risk."
+
+Respond ONLY with valid JSON. No markdown. No JSON schema — return filled values only."""
 
 FEW_SHOT_QUALITY = """
 EXAMPLES OF BAD vs GOOD TRADEOFFS (learn the pattern):
@@ -53,6 +68,13 @@ GOOD (situation-specific, second-order):
 - "PSW evening shifts may leave no study window for CNO exams while caring for two young children"
 - "Starting CNO now preserves bridging-program eligibility windows that close if you delay 12+ months"
 - "Accepting the co-op offer now may signal to your startup cofounder that you are not fully committed"
+- "Partial master's funding leaves a tuition gap that student loans may not cover if the startup equity is illiquid for 2+ years"
+- "Calgary's 20% raise matters less if your partner's marketing role search takes 6+ months in a new city"
+- "Law school adds tuition on top of $40k debt — bank income starts now but may close the admissions window if deferred"
+
+LOGICAL TIMELINE (same path, coherent story):
+BAD: 3_months says "no income", 1_year says "fully licensed nurse earning $80k" with no explanation.
+GOOD: 3_months "submitted CNO docs, still no paycheck", 1_year "assessment in progress OR bridging required — income still uncertain", 3_years "if licensed, RN income; if not, may need to restart PSW path"
 
 EXAMPLES OF BAD vs GOOD personal_impact:
 BAD: "Increased financial stability helps family wellbeing."
@@ -105,11 +127,11 @@ Extract decision structure. Return a JSON object with exactly these keys and str
 - domain (string)
 - non_obvious_risk_signals (array of strings) — specific risks from their story, not generic advice
 
-Example (replace with this user's actual details):
+Example A — credentialing / immigration:
 {{
   "core_decision": "PSW job now vs CNO credential recognition",
   "binding_constraint": "3 months savings with 2 dependents",
-  "why_decision_is_hard": "...",
+  "why_decision_is_hard": "Immediate income pressure conflicts with a long uncertain credential path.",
   "personal_constraints": ["two young children", "spouse cannot work full-time yet"],
   "paths_to_model": ["Take PSW job now", "Pursue CNO recognition", "Part-time PSW + CNO prep"],
   "values": ["financial security", "nursing career"],
@@ -117,7 +139,19 @@ Example (replace with this user's actual details):
   "non_obvious_risk_signals": ["credential gap may require bridging courses", "savings may not cover rent past month 3"]
 }}
 
-Do NOT return a JSON schema. Return only the filled object."""
+Example B — early career (different domain — do NOT copy paths unless user describes this):
+{{
+  "core_decision": "Master's program vs return co-op offer vs startup co-founder role",
+  "binding_constraint": "Decision deadline in 2 months with partial grad funding only",
+  "why_decision_is_hard": "Each path closes different doors — grad school delays income, startup has no salary, co-op is safe but caps upside.",
+  "personal_constraints": [],
+  "paths_to_model": ["Accept master's program", "Take return co-op offer", "Join startup as co-founder"],
+  "values": ["learning", "optionality", "ownership"],
+  "domain": "early career / education",
+  "non_obvious_risk_signals": ["startup equity may be worthless", "partial funding may require debt"]
+}}
+
+Extract from THIS user's situation only. Do NOT return a JSON schema. Return only the filled object."""
 
 
 def build_user_prompt(
@@ -178,9 +212,12 @@ Include at least 3 claims with varying confidence levels; every claim must have 
 High-confidence claims MUST include anchored_to with a named source or URL.
 Include at least 2 global_uncertainty_flags for things you cannot know.
 decision_summary must name the binding constraint and why this decision is hard — not restate the obvious.
-For credentialing/licensing paths: 1_year outcomes must NOT assume success — model partial progress, bridging, or failure branches.
-cross_path_insights: 3 non-obvious insights linking paths to binding_constraint — see FEW_SHOT examples. No forbidden phrases.
-tradeoffs: situation-specific only — name dependents, deadlines, dollars, or credentials from the user's story."""
+paths[].name must align with paths_to_model from extraction (same options, readable labels).
+For credentialing, licensing, startups, or job searches: 1_year and 3_years outcomes must NOT assume success — model partial progress, delays, or failure branches.
+Each path's 3_months → 1_year → 3_years must tell a coherent causal story without unexplained jumps.
+cross_path_insights: exactly 3 items — non-obvious, constraint-driven synthesis. No forbidden phrases.
+tradeoffs: situation-specific only — cite the user's constraints, numbers, deadlines, or named parties.
+questions_to_ask: 3+ specific questions for THIS decision (employer, school, partner, agency) — not generic self-reflection."""
 
 
 # Test scenarios for Day 1 validation (Person 3 shares raw outputs with team)
@@ -238,6 +275,21 @@ TEST_SCENARIOS = {
             "stakes": "career growth, relationship stability, cost of living",
             "values": ["income", "community", "partner's career"],
             "domain": "relocation / career",
+        },
+    },
+    "law_school_vs_bank": {
+        "user_description": (
+            "I got accepted to law school but I also have a full-time offer at a bank. "
+            "I have $40k in student debt already and my parents want me to take the stable job. "
+            "I always wanted to be a lawyer but the bank pays well and I'd start immediately."
+        ),
+        "structured_context": {
+            "paths_being_compared": ["Accept law school", "Take bank job"],
+            "constraints": ["$40k existing student debt", "family pressure for stability"],
+            "timeline_pressure": "need to respond to both offers within 4 weeks",
+            "stakes": "career identity, debt load, family expectations",
+            "values": ["professional identity", "financial security", "family approval"],
+            "domain": "education / career",
         },
     },
 }

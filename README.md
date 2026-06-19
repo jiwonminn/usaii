@@ -96,6 +96,21 @@ See `backend/schemas.py` for the full contract. Key fields:
 - **`global_uncertainty_flags`** — what the AI explicitly cannot know
 - **`disclaimer`** — outputs are projections, not guarantees
 
+### Logical coherence (any scenario, not demo-only)
+
+The engine enforces reasoning that generalizes across domains:
+
+- **Path alignment** — output paths must match Phase 1 extraction (the user's actual options)
+- **Timeline coherence** — 3 months → 1 year → 3 years is one causal story per path
+- **No false success** — credentialing, startups, and job searches must not assume success at 1–3 years
+- **Anchored tradeoffs** — generic pros/cons are rejected; tradeoffs cite user constraints, numbers, or parties
+- **Specific questions** — `questions_to_ask` targets employers, schools, partners — not "what are your goals?"
+- **4 test scenarios** — nurse, grad school, relocation, law school — same engine, no code changes
+
+```bash
+PYTHONPATH=. python scripts/test_reasoning.py all --validate
+```
+
 ### Responsible AI guardrails (built in)
 
 - Never tells the user which path to choose
@@ -137,6 +152,7 @@ Three scenarios ship in `backend/prompts.py` to prove the engine is generic (not
 | `filipino_nurse_toronto` | Immigration / credentialing (demo video scenario) |
 | `grad_school_vs_startup` | Early career / education |
 | `toronto_to_calgary` | Relocation / partner constraints |
+| `law_school_vs_bank` | Education vs job offer / debt / family pressure |
 
 ```bash
 # One scenario

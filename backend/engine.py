@@ -142,6 +142,7 @@ def run_reasoning_chain(request: ReasoningRequest) -> ReasoningResponse:
             response,
             binding_constraint=extraction.binding_constraint,
             personal_constraints=extraction.personal_constraints,
+            paths_to_model=extraction.paths_to_model,
         )
         if not issues:
             break
@@ -180,6 +181,7 @@ def run_reasoning_chain_with_meta(request: ReasoningRequest) -> tuple[ReasoningR
             response,
             binding_constraint=extraction.binding_constraint,
             personal_constraints=extraction.personal_constraints,
+            paths_to_model=extraction.paths_to_model,
         )
         if not issues:
             break
