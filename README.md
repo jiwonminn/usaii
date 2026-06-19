@@ -112,7 +112,7 @@ See `backend/schemas.py` for the full contract. Key fields:
 | `OPENAI_API_KEY` | — | Required for live reasoning |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Chat model for both LLM phases |
 | `USE_MOCK` | `false` | Return sample JSON without API calls |
-| `REASONING_MAX_RETRIES` | `1` | Auto-retry count when validation fails |
+| `REASONING_MAX_RETRIES` | `2` | Auto-retry count when validation fails |
 
 ---
 
@@ -209,7 +209,7 @@ Request:
 }
 ```
 
-Response: `ReasoningResponse` (see `backend/schemas.py`).
+Response: `ReasoningResponse` (see `backend/schemas.py`), including optional `extraction` from Phase 1 for context cards.
 
 **`GET /health`** — server status check.
 

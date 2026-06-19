@@ -35,6 +35,20 @@ def _model() -> str:
     return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 
+def _reasoning_llm_schema() -> dict[str, Any]:
+    """Schema for phase 2 LLM — excludes extraction (attached by engine after)."""
+    schema = ReasoningResponse.model_json_schema()
+    props = schema.get("properties", {})
+    props.pop("extraction", None)
+    if "required" in schema:
+        schema["required"] = [f for f in schema["required"] if f != "extraction"]
+    return schema
+
+
+def _attach_extraction(response: ReasoningResponse, extraction: DecisionExtraction) -> ReasoningResponse:
+    return response.model_copy(update={"extraction": extraction})
+
+
 def _chat_json(client: OpenAI, system: str, user: str, *, temperature: float = 0.35) -> dict[str, Any]:
     try:
         response = client.chat.completions.create(
@@ -86,7 +100,7 @@ def _model_tradeoffs(
     retry_issues: list[str] | None = None,
 ) -> ReasoningResponse:
     """Step 2: tradeoffs, timed outcomes, uncertainty — grounded in extraction."""
-    schema = json.dumps(ReasoningResponse.model_json_schema(), indent=2)
+    schema = json.dumps(_reasoning_llm_schema(), indent=2)
     prompt = build_user_prompt(
         user_description=request.user_description,
         structured_context=request.structured_context.model_dump(exclude_none=True),
@@ -97,7 +111,7 @@ def _model_tradeoffs(
     )
     temp = 0.2 if retry_issues else 0.35
     data = _chat_json(client, SYSTEM_PROMPT, prompt, temperature=temp)
-    return ReasoningResponse.model_validate(data)
+    return _attach_extraction(ReasoningResponse.model_validate(data), extraction)
 
 
 def run_reasoning_chain(request: ReasoningRequest) -> ReasoningResponse:
@@ -135,7 +149,7 @@ def run_reasoning_chain(request: ReasoningRequest) -> ReasoningResponse:
     if response is None:
         raise RuntimeError("Reasoning chain produced no response.")
 
-    return response
+    return _attach_extraction(response, extraction)
 
 
 def run_reasoning_chain_with_meta(request: ReasoningRequest) -> tuple[ReasoningResponse, DecisionExtraction, list[str]]:
@@ -173,7 +187,7 @@ def run_reasoning_chain_with_meta(request: ReasoningRequest) -> tuple[ReasoningR
     if response is None:
         raise RuntimeError("Reasoning chain produced no response.")
 
-    return response, extraction, issues
+    return _attach_extraction(response, extraction), extraction, issues
 
 
 async def run_reasoning_chain_async(request: ReasoningRequest) -> ReasoningResponse:

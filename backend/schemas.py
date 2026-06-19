@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from backend.extraction import DecisionExtraction
+
 
 class StructuredContext(BaseModel):
     """Context extracted from intake (Person 1/4). All fields optional for partial intake."""
@@ -92,4 +94,8 @@ class ReasoningResponse(BaseModel):
     disclaimer: str = (
         "This is a projection based on what you have shared — not a guarantee. "
         "Your situation may differ. Only you can make the final decision."
+    )
+    extraction: DecisionExtraction | None = Field(
+        default=None,
+        description="Phase 1 structured context — attached by engine, not generated in phase 2.",
     )

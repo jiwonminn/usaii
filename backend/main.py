@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
 
 from backend.engine import run_reasoning_chain
 from backend.schemas import ReasoningRequest, ReasoningResponse

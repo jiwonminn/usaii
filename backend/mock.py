@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from backend.extraction import DecisionExtraction
 from backend.schemas import (
     ClaimWithUncertainty,
     PathAnalysis,
@@ -178,6 +179,23 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
             "Whether spouse can increase work hours if savings run out",
         ],
         what_if_impact=what_if_note,
+        extraction=DecisionExtraction(
+            core_decision="Take PSW work now vs pursue CNO nursing credential recognition first",
+            binding_constraint="3 months savings with 2 dependents",
+            why_decision_is_hard="Immediate income pressure conflicts with a long uncertain credential path.",
+            personal_constraints=["two young children", "spouse cannot work full-time yet"],
+            paths_to_model=[
+                "Take PSW / healthcare aide job now",
+                "Pursue CNO credential recognition first",
+                "Part-time PSW + CNO prep",
+            ],
+            values=["financial security", "career alignment", "family wellbeing"],
+            domain="immigration / career credentialing",
+            non_obvious_risk_signals=[
+                "credential gap may require bridging courses",
+                "savings may not cover rent past month 3",
+            ],
+        ),
     )
 
 
@@ -234,5 +252,15 @@ def run_mock_reasoning_chain(request: ReasoningRequest) -> ReasoningResponse:
         global_uncertainty_flags=["Entire analysis is placeholder mock data"],
         what_if_impact=(
             f"Mock what-if: {request.what_if_assumption}" if request.what_if_assumption else None
+        ),
+        extraction=DecisionExtraction(
+            core_decision="Paths extracted from user input (mock)",
+            binding_constraint="Unknown — connect live API",
+            why_decision_is_hard="Mock mode cannot extract real constraints from your description.",
+            personal_constraints=[],
+            paths_to_model=["Path A", "Path B"],
+            values=[],
+            domain="mock",
+            non_obvious_risk_signals=["Replace mock mode before demo submission"],
         ),
     )
