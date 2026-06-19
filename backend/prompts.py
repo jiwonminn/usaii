@@ -32,6 +32,7 @@ QUALITY BAR (judges score AI Reasoning on this — avoid generic pros/cons lists
 - claims: NEVER leave unknown_factors empty when confidence is "medium" or "low". High-confidence claims should still list what could change the estimate.
 - outcomes: personal_impact must reflect the user's stated constraints (dependents, spouse, savings runway) — not generic advice.
 - Do not write obvious bullet points. Each insight should teach the user something they likely had not articulated.
+- cross_path_insights: exactly 3 items. Each must reference the binding constraint OR a personal constraint OR optionality/inertia (what doors close vs stay open). Never summarize paths — synthesize non-obvious interactions between paths.
 
 Respond ONLY with valid JSON matching the schema provided. No markdown fences. Use proper spacing in all string values."""
 
@@ -56,6 +57,22 @@ GOOD (situation-specific, second-order):
 EXAMPLES OF BAD vs GOOD personal_impact:
 BAD: "Increased financial stability helps family wellbeing."
 GOOD: "Three months savings means any CNO delay forces spouse into full-time work before childcare is sorted."
+
+FORBIDDEN PHRASES — never use in tradeoffs OR cross_path_insights:
+"financial hardship", "financial stability", "income vs", "career satisfaction", "long-term career goals",
+"immediate financial needs", "weighing immediate", "each option presents", "fulfilling career"
+
+EXAMPLES OF BAD vs GOOD cross_path_insights:
+
+BAD (summary — never write these):
+- "Both paths involve tradeoffs between financial needs and career goals."
+- "Staying offers stability while moving offers higher pay."
+- "Each option has pros and cons to consider."
+
+GOOD (non-obvious, constraint-driven):
+- "With only 3 months runway, the hybrid path only works if part-time PSW hours are predictable — otherwise savings expire before CNO documents are even submitted."
+- "Grad school preserves a 2027 hiring cycle optionality that the startup path forecloses if the cofounder replaces you within 6 months."
+- "Calgary's salary bump may not offset partner unemployment — the binding constraint is dual income, not headline pay."
 """
 
 RETRY_INSTRUCTION = """
@@ -161,7 +178,9 @@ Include at least 3 claims with varying confidence levels; every claim must have 
 High-confidence claims MUST include anchored_to with a named source or URL.
 Include at least 2 global_uncertainty_flags for things you cannot know.
 decision_summary must name the binding constraint and why this decision is hard — not restate the obvious.
-For credentialing/licensing paths: 1_year outcomes must NOT assume success — model partial progress, bridging, or failure branches."""
+For credentialing/licensing paths: 1_year outcomes must NOT assume success — model partial progress, bridging, or failure branches.
+cross_path_insights: 3 non-obvious insights linking paths to binding_constraint — see FEW_SHOT examples. No forbidden phrases.
+tradeoffs: situation-specific only — name dependents, deadlines, dollars, or credentials from the user's story."""
 
 
 # Test scenarios for Day 1 validation (Person 3 shares raw outputs with team)

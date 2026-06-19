@@ -20,7 +20,7 @@ from backend.prompts import (
 from backend.schemas import ReasoningRequest, ReasoningResponse
 from backend.validators import validate_reasoning
 
-MAX_QUALITY_RETRIES = int(os.environ.get("REASONING_MAX_RETRIES", "1"))
+MAX_QUALITY_RETRIES = int(os.environ.get("REASONING_MAX_RETRIES", "2"))
 
 
 def _use_mock_mode() -> bool:
@@ -35,7 +35,7 @@ def _model() -> str:
     return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 
-def _chat_json(client: OpenAI, system: str, user: str) -> dict[str, Any]:
+def _chat_json(client: OpenAI, system: str, user: str, *, temperature: float = 0.35) -> dict[str, Any]:
     try:
         response = client.chat.completions.create(
             model=_model(),
@@ -44,7 +44,7 @@ def _chat_json(client: OpenAI, system: str, user: str) -> dict[str, Any]:
                 {"role": "user", "content": user},
             ],
             response_format={"type": "json_object"},
-            temperature=0.35,
+            temperature=temperature,
         )
     except RateLimitError as exc:
         detail = str(exc)
@@ -95,7 +95,8 @@ def _model_tradeoffs(
         extraction=extraction.model_dump(),
         retry_issues=retry_issues,
     )
-    data = _chat_json(client, SYSTEM_PROMPT, prompt)
+    temp = 0.2 if retry_issues else 0.35
+    data = _chat_json(client, SYSTEM_PROMPT, prompt, temperature=temp)
     return ReasoningResponse.model_validate(data)
 
 

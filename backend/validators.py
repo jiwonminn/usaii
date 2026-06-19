@@ -52,13 +52,20 @@ def validate_reasoning(
             )
 
     cross = " ".join(response.cross_path_insights).lower()
-    for phrase in GENERIC_PHRASES[:5]:
+    for phrase in GENERIC_PHRASES:
         if phrase in cross:
             issues.append(
                 "cross_path_insights sound like a summary, not non-obvious reasoning. "
                 "Include optionality, inertia, or constraint-driven tradeoffs."
             )
             break
+
+    summary_phrase_hits = sum(1 for phrase in ("both paths", "each option", "each path", "pros and cons") if phrase in cross)
+    if summary_phrase_hits >= 1:
+        issues.append(
+            "cross_path_insights use summary language ('both paths', 'each option'). "
+            "Write constraint-specific synthesis instead."
+        )
 
     for claim in response.claims:
         if claim.confidence in ("medium", "low") and not claim.unknown_factors:
