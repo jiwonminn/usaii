@@ -234,12 +234,16 @@ usaii/
 │   ├── mock.py          # Offline sample data
 │   └── env.py           # .env loading
 ├── scripts/
-│   └── test_reasoning.py
+│   ├── test_reasoning.py
+│   └── preflight.py
+├── DEVPOST.md           # Submission draft (AI architecture + reasoning)
 ├── requirements.txt
 └── .env.example
 ```
 
 ---
+
+## Preflight (demo day)
 
 ```bash
 PYTHONPATH=. python scripts/preflight.py
@@ -247,7 +251,18 @@ PYTHONPATH=. python scripts/preflight.py
 
 Use before demo day to confirm mock data passes the quality gate and the API contract matches the frontend.
 
-### Tuning guide
+## Devpost submission
+
+Copy-paste draft for hackathon submission lives in [`DEVPOST.md`](DEVPOST.md). Includes:
+
+- AI architecture (3-phase pipeline)
+- AI reasoning justification (why LLM vs rules engine)
+- Responsible AI safeguards + human-in-the-loop
+- Data disclosure and tools used
+
+Person 4 owns final Devpost edits; backend team reviewed the AI sections.
+
+## Tuning guide
 
 Use `--validate` after every prompt change:
 
