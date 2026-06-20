@@ -241,7 +241,13 @@ usaii/
 
 ---
 
-## Tuning guide
+```bash
+PYTHONPATH=. python scripts/preflight.py
+```
+
+Use before demo day to confirm mock data passes the quality gate and the API contract matches the frontend.
+
+### Tuning guide
 
 Use `--validate` after every prompt change:
 

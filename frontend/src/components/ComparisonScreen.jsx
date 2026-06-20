@@ -37,7 +37,7 @@ export default function ComparisonScreen({ response, onReset, children }) {
 
       {cross_path_insights?.length > 0 && (
         <section className="cross-insights">
-          <h4>Worth noticing across both paths</h4>
+          <h4>Worth noticing across paths</h4>
           <ul>
             {cross_path_insights.map((insight, i) => (
               <li key={i}>{insight}</li>

@@ -35,8 +35,8 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
 
     return ReasoningResponse(
         decision_summary=(
-            "A Filipino RN in Toronto with ~3 months savings must balance immediate household income "
-            "against long-term nursing licensure. Neither path is risk-free."
+            "With 3 months savings and two young children, a Filipino RN in Toronto must balance "
+            "immediate household income against long-term nursing licensure. Neither path is risk-free."
         ),
         core_decision="Take PSW work now vs pursue CNO nursing credential recognition first",
         paths=[
@@ -48,14 +48,14 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
                         "Stable paycheck; savings pressure eases; less time for CNO paperwork/study.",
                         "Roughly $2,800–$3,400/month gross (Ontario PSW range, varies by employer)",
                         "Work experience in Canadian healthcare, but not as an RN",
-                        "More predictable household stress; less time for credential prep",
+                        "More predictable household stress; spouse still cannot work full-time while you cover childcare",
                         "medium",
                     ),
                     "1_year": _outcome(
                         "Financial runway improved; credential gap may widen if CNO prep stays on hold.",
                         "Household may break even or save modestly",
                         "PSW experience helps clinically but does not substitute for RN license",
-                        "Risk of 'getting stuck' in lower-paid role due to inertia",
+                        "Risk of career inertia; two young children still limit study windows after shifts",
                         "medium",
                     ),
                     "3_years": _outcome(
@@ -67,9 +67,9 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
                     ),
                 },
                 tradeoffs=[
-                    "Immediate income vs delayed RN licensure",
-                    "Lower entry barrier vs lower ceiling without RN title",
-                    "Shift work may conflict with childcare and study time",
+                    "PSW evening shifts may leave no study window for CNO exams while caring for two young children",
+                    "Lower entry barrier than RN roles, but ceiling stays below licensed nursing compensation",
+                    "Shift work may conflict with childcare when spouse cannot work full-time yet",
                 ],
                 hidden_considerations=[
                     "Some employers offer tuition or scheduling support — worth asking before accepting",
@@ -108,7 +108,7 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
                         "Best case: partial registration or exam eligibility; worst case: still in assessment.",
                         "Short-term income gap; potential bridging program fees",
                         "RN pathway intact; nursing identity preserved",
-                        "Stressful if savings exhausted before income restarts",
+                        "Stressful if savings exhausted before income restarts; spouse may need full-time work sooner",
                         "low",
                     ),
                     "3_years": _outcome(
@@ -120,9 +120,9 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
                     ),
                 },
                 tradeoffs=[
-                    "Higher long-term ceiling vs high short-term financial risk",
-                    "Credential recognition is uncertain and not fully in your control",
-                    "Spouse's limited work capacity increases household vulnerability",
+                    "Credential recognition timeline is uncertain — savings may expire before spouse can increase work hours",
+                    "Bridging program gaps could add tuition costs on top of zero income",
+                    "Spouse's limited work capacity increases household vulnerability during assessment",
                 ],
                 hidden_considerations=[
                     "Credential recognition is not pass/fail only — gaps may require costly bridging courses",
@@ -145,9 +145,63 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
                     ),
                 ],
             ),
+            PathAnalysis(
+                name="Part-time PSW + CNO prep",
+                description="Earn partial income while submitting CNO documents and studying — only viable if hours are predictable.",
+                outcomes={
+                    "3_months": _outcome(
+                        "Partial paycheck plus CNO paperwork underway; household still stretched.",
+                        "Roughly $1,400–$1,800/month if part-time PSW hours are secured",
+                        "Dual track keeps RN pathway active while maintaining some Canadian work history",
+                        "Exhausting with two young children — spouse cannot work full-time yet to share load",
+                        "medium",
+                    ),
+                    "1_year": _outcome(
+                        "Best case: CNO assessment progressing with modest income; worst case: hours cut, savings gone.",
+                        "Household may break even only if part-time hours stay fixed",
+                        "RN pathway preserved if assessments advance; PSW hours do not substitute for licensure",
+                        "Caregiver burnout risk if both credential prep and childcare fall on one parent",
+                        "low",
+                    ),
+                    "3_years": _outcome(
+                        "If licensed, RN earnings likely exceed PSW-only path; if stalled, years lost with no full RN salary.",
+                        "RN range roughly $70k–$90k if successful; otherwise stuck between PSW wages and unfinished credentialing",
+                        "Hybrid preserves nursing identity but delays full-scope practice",
+                        "Family may have survived the crunch but at high relational and health cost",
+                        "low",
+                    ),
+                },
+                tradeoffs=[
+                    "Part-time PSW only works if employer guarantees fixed hours — otherwise 3 months savings expires mid-prep",
+                    "Studying for CNO exams after shifts is realistic only if spouse can cover two young children some evenings",
+                    "Hybrid path avoids full income gap but extends total time-to-RN versus full-time credential focus",
+                ],
+                hidden_considerations=[
+                    "Some employers rescind part-time offers if full-time coverage is needed — check contract language",
+                    "Starting CNO now while working part-time preserves option to scale up PSW hours if savings run out",
+                ],
+                what_you_give_up=[
+                    "Full-time income stability that a PSW-only path provides immediately",
+                    "Focused study time that full-time CNO prep would allow without shift fatigue",
+                ],
+                verify_before_deciding=[
+                    VerificationItem(
+                        item="Confirm whether part-time PSW contract hours are guaranteed for 6+ months",
+                        official_source="Employer offer letter + Ontario employment standards",
+                        confidence="high",
+                    ),
+                    VerificationItem(
+                        item="Ask CNO whether part-time work affects assessment timeline for your credentials",
+                        official_source="https://www.cno.org/en/become-a-nurse/apply/",
+                        confidence="medium",
+                        reason_uncertain="Assessment speed depends on document completeness, not employment status",
+                    ),
+                ],
+            ),
         ],
         cross_path_insights=[
-            "A hybrid path (part-time PSW + CNO prep) is often realistic but exhausting with two dependents",
+            "With 3 months savings, a hybrid path only works if part-time hours are contractually fixed — otherwise savings expire before CNO intake",
+            "A hybrid path (part-time PSW + CNO prep) is often realistic but exhausting with two young children",
             "Three months savings is the binding constraint — timeline uncertainty matters more than job title",
         ],
         questions_to_ask=[
@@ -164,9 +218,9 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
             ),
             ClaimWithUncertainty(
                 text="CNO recognition often takes many months and may require bridging",
-                confidence="medium",
-                unknown_factors=["Your transcript gaps", "Assessment backlog"],
-                anchored_to="CNO publicly stated processes",
+                confidence="high",
+                unknown_factors=[],
+                anchored_to="https://www.cno.org/en/become-a-nurse/registration/registration-requirements/",
             ),
             ClaimWithUncertainty(
                 text="Delaying licensure several years can reduce lifetime nursing earnings",
