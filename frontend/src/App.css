@@ -376,6 +376,433 @@
   font-style: italic;
 }
 
+/* ---------- Uncertainty Panel ---------- */
+
+.uncertainty-panel {
+  margin: 0 0 24px;
+}
+
+.uncertainty-panel__section {
+  margin-bottom: 20px;
+}
+
+.uncertainty-panel__section:last-child {
+  margin-bottom: 0;
+}
+
+.uncertainty-panel__heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--parchment);
+  margin: 0 0 4px;
+}
+
+.uncertainty-panel__sub {
+  font-size: 13px;
+  color: var(--parchment-dim);
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.claim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.claim-card {
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.claim-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+}
+
+/* Left edge bar — color communicates confidence at a glance */
+.claim-card__bar {
+  width: 3px;
+  min-height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.claim-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.claim-card__text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--parchment);
+  margin: 0 0 3px;
+}
+
+.claim-card__anchor {
+  font-size: 12px;
+  color: var(--parchment-dim);
+}
+
+.claim-card__badge {
+  flex-shrink: 0;
+  align-self: flex-start;
+  border: 1px solid;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.claim-card__toggle {
+  background: none;
+  border: none;
+  border-top: 1px solid var(--ink-line);
+  color: var(--parchment-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 8px 16px 8px 31px;
+  text-align: left;
+  width: 100%;
+  transition: color 0.15s;
+}
+
+.claim-card__toggle:hover {
+  color: var(--teal);
+}
+
+.claim-card__factors {
+  border-top: 1px solid var(--ink-line);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--parchment-dim);
+  margin: 0;
+  padding: 10px 16px 12px 31px;
+}
+
+.claim-card__factors li {
+  margin-bottom: 3px;
+}
+
+.uncertainty-flags {
+  list-style: none;
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--ink-raised);
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.uncertainty-flag {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--parchment-dim);
+}
+
+/* Small question-mark circle as a low-key icon */
+.uncertainty-flag__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  position: relative;
+}
+
+.uncertainty-flag__icon::after {
+  content: "?";
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--parchment-dim);
+}
+
+/* ---------- What-If Explorer ---------- */
+
+.what-if-explorer {
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin: 0 0 24px;
+}
+
+.what-if-explorer__header {
+  margin-bottom: 16px;
+}
+
+.what-if-explorer__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--parchment);
+  margin: 0 0 5px;
+}
+
+.what-if-explorer__sub {
+  font-size: 13px;
+  color: var(--parchment-dim);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.what-if-explorer__error {
+  color: var(--clay);
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+/* Claim chips — clickable excerpts the user can challenge */
+.what-if-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.what-if-chip {
+  background: var(--ink);
+  border: 1px solid var(--ink-line);
+  border-radius: 4px;
+  color: var(--parchment-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 340px;
+  padding: 8px 12px;
+  text-align: left;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.what-if-chip:hover {
+  border-color: var(--teal);
+  color: var(--parchment);
+}
+
+.what-if-chip--active {
+  border-color: var(--teal);
+  color: var(--parchment);
+  background: var(--ink-raised);
+}
+
+/* Input form */
+.what-if-form {
+  margin-top: 4px;
+}
+
+.what-if-form__textarea {
+  width: 100%;
+  background: var(--ink);
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 12px 14px;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.what-if-form__textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.what-if-form__textarea::placeholder {
+  color: var(--parchment-dim);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.what-if-form__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.what-if-form__clear {
+  background: none;
+  border: 1px solid var(--ink-line);
+  border-radius: 4px;
+  color: var(--parchment-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.what-if-form__clear:hover {
+  border-color: var(--clay);
+  color: var(--clay);
+}
+
+.what-if-form__submit {
+  background: var(--teal);
+  border: none;
+  border-radius: 4px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 18px;
+  transition: filter 0.15s;
+}
+
+.what-if-form__submit:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.what-if-form__submit:disabled {
+  background: var(--ink-line);
+  color: var(--parchment-dim);
+  cursor: not-allowed;
+}
+
+/* ---------- What-If Result ---------- */
+
+.what-if-result {
+  border-top: 1px solid var(--ink-line);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.what-if-result__banner {
+  background: var(--ink);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 4px 4px 0;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.what-if-result__banner-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 4px;
+}
+
+.what-if-result__banner-text {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--parchment);
+  margin: 0;
+}
+
+.what-if-result__impact {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--parchment);
+  margin: 0 0 18px;
+}
+
+.what-if-result__framing {
+  background: var(--ink-raised);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--parchment);
+}
+
+.what-if-result__framing-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+  margin-bottom: 6px;
+}
+
+.what-if-result__paths-heading {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+  margin: 0 0 12px;
+}
+
+.what-if-result__paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.what-if-path-card {
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  padding: 16px;
+  background: var(--ink-raised);
+}
+
+.what-if-path-card__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--parchment);
+  margin: 0 0 12px;
+}
+
+.what-if-path-card__outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.what-if-outcome-row {
+  padding: 10px 0;
+  border-top: 1px solid var(--ink-line);
+}
+
+.what-if-outcome-row:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.what-if-outcome-row__time {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+  margin-bottom: 4px;
+}
+
+.what-if-outcome-row__summary {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--parchment);
+  margin: 0;
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 640px) {
