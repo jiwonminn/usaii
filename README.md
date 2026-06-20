@@ -4,20 +4,9 @@ AI-powered MVP for **Direction A — Life Decision Simulator**. Users describe a
 
 > **Not a pros/cons generator.** The LLM reasons from the user's specific constraints (savings runway, dependents, deadlines) and produces decision inputs, not "correct answers."
 
-## Team roles
-
-| Person | Area |
-|--------|------|
-| N (Person 1) | Intake UI + comparison display |
-| D (Person 2) | What-if explorer + uncertainty UI |
-| **J (Person 3)** | **LLM reasoning & tradeoff engine** |
-| T (Person 4) | Context structuring + API integration + Devpost |
-
----
-
 ## LLM Reasoning Engine (architecture)
 
-This is the core AI component (Person 3). It is **fully generic** — the same code handles immigration/career decisions, grad school vs startup, relocation, or any other scenario without hardcoded templates.
+The reasoning engine is **fully generic** — the same code handles immigration/career decisions, grad school vs startup, relocation, or any other scenario without hardcoded templates.
 
 ### Why an LLM (not a rules engine)?
 
@@ -80,8 +69,8 @@ User input (any decision)
 | Input field | Source | Used for |
 |-------------|--------|----------|
 | `user_description` | Intake UI — plain language, any language | Primary signal for extraction |
-| `structured_context` | Person 4 / intake follow-up questions | Paths, constraints, values, domain (optional) |
-| `what_if_assumption` | Person 2's explorer | Re-runs Phase 2 with changed assumption |
+| `structured_context` | Intake follow-up questions | Paths, constraints, values, domain (optional) |
+| `what_if_assumption` | What-if explorer | Re-runs Phase 2 with changed assumption |
 
 ### What the LLM produces (outputs)
 
@@ -164,7 +153,7 @@ PYTHONPATH=. python scripts/test_reasoning.py all
 # With extraction + quality report (recommended for tuning)
 PYTHONPATH=. python scripts/test_reasoning.py all --validate
 
-# What-if assumption (Person 2's feature)
+# What-if assumption
 PYTHONPATH=. python scripts/test_reasoning.py filipino_nurse_toronto \
   --what-if "CNO process completes in 4 months instead of 12"
 
@@ -252,7 +241,7 @@ usaii/
 
 ---
 
-## Tuning guide (Person 3)
+## Tuning guide
 
 Use `--validate` after every prompt change:
 
