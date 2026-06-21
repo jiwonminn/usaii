@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from backend.extraction import DecisionExtraction
 from backend.schemas import (
     ClaimWithUncertainty,
@@ -253,6 +255,186 @@ def mock_filipino_nurse_response(request: ReasoningRequest) -> ReasoningResponse
     )
 
 
+def _extract_path_options(text: str) -> list[str] | None:
+    patterns = [
+        r"(?:torn between|choosing between|decide between|either|between)\s+(.+?)\s+(?:or|and)\s+(.+?)(?:[.!?]|$)",
+        r"(.+?)\s+vs\.?\s+(.+?)(?:[.!?]|$)",
+        r"(.+?)\s+or\s+(.+?)(?:[.!?]|$)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if not match:
+            continue
+        a = " ".join(match.group(1).split()).strip()[:100]
+        b = " ".join(match.group(2).split()).strip()[:100]
+        if len(a) > 8 and len(b) > 8 and a.lower() != b.lower():
+            return [a, b]
+    return None
+
+
+def _path_meta(option: str, index: int) -> tuple[str, str]:
+    label = option[0].upper() + option[1:] if option else option
+    if index == 0:
+        return (
+            label,
+            f"This path means choosing {option.lower()} — usually eases immediate pressure first, "
+            "but you may give up momentum on the other option you mentioned.",
+        )
+    return (
+        label,
+        f"This path means pursuing {option.lower()} — better long-term fit if it works out, "
+        "but the upfront cost in time, money, or uncertainty is higher early on.",
+    )
+
+
+def _generic_mock_response(request: ReasoningRequest) -> ReasoningResponse:
+    desc = request.user_description.strip()
+    options = _extract_path_options(desc)
+    default_names = ["The safer choice for now", "The bolder choice for later"]
+    default_descriptions = [
+        "Take the lower-risk option you're weighing — more predictable in the next few months, "
+        "but you may feel you're postponing what you actually want.",
+        "Commit to the higher-upside option you described — harder at the start, "
+        "but potentially better aligned with where you want to be in a year or three.",
+    ]
+
+    path_specs: list[tuple[str, str]] = []
+    if options:
+        path_specs = [_path_meta(opt, i) for i, opt in enumerate(options)]
+    else:
+        path_specs = list(zip(default_names, default_descriptions, strict=True))
+
+    paths: list[PathAnalysis] = []
+    for i, (name, description) in enumerate(path_specs):
+        option_label = options[i].lower() if options else name.lower()
+        paths.append(
+            PathAnalysis(
+                name=name,
+                description=description,
+                outcomes={
+                    "3_months": _outcome(
+                        f"Early weeks on {option_label} — immediate tradeoffs start to show.",
+                        "Depends on your specifics — connect live API for estimates",
+                        "Varies with how this path plays out over time",
+                        "Household and stress levels shift with whichever path you choose",
+                        "low",
+                    ),
+                    "1_year": _outcome(
+                        f"One year in on {option_label} — clearer signal, but not everything is settled.",
+                        "Depends on your specifics — connect live API for estimates",
+                        "Varies with how this path plays out over time",
+                        "Household and stress levels shift with whichever path you choose",
+                        "low",
+                    ),
+                    "3_years": _outcome(
+                        "Three years on this path — best case looks stronger; worst case may mean pivoting again.",
+                        "Depends on your specifics — connect live API for estimates",
+                        "Varies with how this path plays out over time",
+                        "Household and stress levels shift with whichever path you choose",
+                        "low",
+                    ),
+                },
+                tradeoffs=[
+                    f"Time and money spent on {name.lower()} can't automatically be recovered if you switch later",
+                    "Your household and relationships feel this choice differently at each stage",
+                ],
+                hidden_considerations=[
+                    "Doors you close now may stay closed longer than you expect",
+                    "A hybrid version of this path might still be possible — worth asking before committing",
+                ],
+                what_you_give_up=[
+                    "Flexibility to pursue the other option at the same pace",
+                    "Some peace of mind while uncertainty resolves",
+                ],
+                verify_before_deciding=[
+                    VerificationItem(
+                        item="Confirm timelines, costs, and requirements for this path",
+                        official_source="https://www.canada.ca/",
+                        confidence="low",
+                    )
+                ],
+            )
+        )
+
+    path_names = [p.name for p in paths]
+    ctx = request.structured_context
+    structured_paths = ctx.paths_being_compared or path_names
+    binding = (
+        " · ".join(ctx.constraints)
+        if ctx.constraints
+        else "Your main limiting factor — connect live API for extraction"
+    )
+    personal = list(ctx.constraints) if ctx.constraints else []
+
+    summary = (
+        f"You're weighing {path_names[0]} against {path_names[1]} — neither is risk-free, "
+        "and the right call depends on constraints the live engine would extract from your full description."
+        if options
+        else "You're facing a real tradeoff — connect the live API for path-specific reasoning tailored to your situation."
+    )
+    if ctx.constraints:
+        summary = (
+            f"With {binding} in play, you're weighing {path_names[0]} against {path_names[1]} — "
+            "neither path removes the tradeoff entirely."
+        )
+
+    return ReasoningResponse(
+        decision_summary=summary,
+        core_decision=f"{path_names[0]} vs {path_names[1]}",
+        paths=paths,
+        cross_path_insights=[
+            "Both paths change what feels urgent vs what feels possible in 3 months vs 3 years",
+            "The binding constraint in your description matters more than which option sounds better on paper",
+            "A hybrid or sequenced version of these paths may exist — worth checking before you decide",
+        ],
+        questions_to_ask=[
+            "What is the exact deadline or runway I have before I must choose?",
+            "What would each path cost me in time and money over the next 12 months?",
+            "Who else is affected if I pick one path and it takes longer than expected?",
+        ],
+        claims=[
+            ClaimWithUncertainty(
+                text="Major life decisions rarely have a single correct answer — tradeoffs depend on your constraints",
+                confidence="medium",
+                unknown_factors=["Your exact runway", "Who else is affected by the choice"],
+            ),
+            ClaimWithUncertainty(
+                text="Short-term relief and long-term alignment often pull in opposite directions",
+                confidence="medium",
+                unknown_factors=["Your risk tolerance", "Support available to you"],
+            ),
+            ClaimWithUncertainty(
+                text="The first few months on either path rarely predict how year three feels",
+                confidence="low",
+                unknown_factors=["Market changes", "Personal circumstances shifting"],
+            ),
+        ],
+        global_uncertainty_flags=[
+            "Exact timelines and costs for your specific situation",
+            "How people depending on you would be affected under each path",
+        ],
+        what_if_impact=(
+            f"If '{request.what_if_assumption}' were true, timelines and confidence would shift — "
+            "mock preview only; connect live API for real what-if reasoning."
+            if request.what_if_assumption
+            else None
+        ),
+        extraction=DecisionExtraction(
+            core_decision=f"{path_names[0]} vs {path_names[1]}",
+            binding_constraint=binding,
+            why_decision_is_hard=(
+                ctx.stakes
+                or "Both options carry real costs; the tradeoff isn't obvious from a pros/cons list alone."
+            ),
+            personal_constraints=personal,
+            paths_to_model=structured_paths,
+            values=list(ctx.values),
+            domain=ctx.domain or "decision support",
+            non_obvious_risk_signals=[],
+        ),
+    )
+
+
 def run_mock_reasoning_chain(request: ReasoningRequest) -> ReasoningResponse:
     """Return plausible structured output without calling OpenAI."""
     desc = request.user_description.lower()
@@ -260,61 +442,4 @@ def run_mock_reasoning_chain(request: ReasoningRequest) -> ReasoningResponse:
         return mock_filipino_nurse_response(request)
 
     # Generic fallback for other scenarios during mock dev
-    return ReasoningResponse(
-        decision_summary="Mock response for local development — enable billing for real AI reasoning.",
-        core_decision="Paths extracted from user input (mock)",
-        paths=[
-            PathAnalysis(
-                name="Path A",
-                description="First option inferred from your description.",
-                outcomes={
-                    "3_months": _outcome("Short-term projection A", "TBD", "TBD", "TBD", "low"),
-                    "1_year": _outcome("Medium-term projection A", "TBD", "TBD", "TBD", "low"),
-                    "3_years": _outcome("Long-term projection A", "TBD", "TBD", "TBD", "low"),
-                },
-                tradeoffs=["Mock tradeoff — run with live API for real analysis"],
-                hidden_considerations=["Replace mock mode before demo submission"],
-                what_you_give_up=["Unknown in mock mode"],
-                verify_before_deciding=[
-                    VerificationItem(
-                        item="Verify key assumptions with official sources",
-                        official_source="Relevant government or institutional site",
-                        confidence="low",
-                    )
-                ],
-            ),
-            PathAnalysis(
-                name="Path B",
-                description="Second option inferred from your description.",
-                outcomes={
-                    "3_months": _outcome("Short-term projection B", "TBD", "TBD", "TBD", "low"),
-                    "1_year": _outcome("Medium-term projection B", "TBD", "TBD", "TBD", "low"),
-                    "3_years": _outcome("Long-term projection B", "TBD", "TBD", "TBD", "low"),
-                },
-                tradeoffs=["Mock tradeoff — run with live API for real analysis"],
-                hidden_considerations=["Replace mock mode before demo submission"],
-                what_you_give_up=["Unknown in mock mode"],
-            ),
-        ],
-        claims=[
-            ClaimWithUncertainty(
-                text="This output was generated in mock mode without calling OpenAI",
-                confidence="high",
-                unknown_factors=["All scenario-specific reasoning"],
-            )
-        ],
-        global_uncertainty_flags=["Entire analysis is placeholder mock data"],
-        what_if_impact=(
-            f"Mock what-if: {request.what_if_assumption}" if request.what_if_assumption else None
-        ),
-        extraction=DecisionExtraction(
-            core_decision="Paths extracted from user input (mock)",
-            binding_constraint="Unknown — connect live API",
-            why_decision_is_hard="Mock mode cannot extract real constraints from your description.",
-            personal_constraints=[],
-            paths_to_model=["Path A", "Path B"],
-            values=[],
-            domain="mock",
-            non_obvious_risk_signals=["Replace mock mode before demo submission"],
-        ),
-    )
+    return _generic_mock_response(request)

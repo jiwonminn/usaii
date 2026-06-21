@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import time
+from collections.abc import Iterator
 from typing import Any
 
 from openai import OpenAI, RateLimitError
@@ -194,3 +196,91 @@ def run_reasoning_chain_with_meta(request: ReasoningRequest) -> tuple[ReasoningR
 
 async def run_reasoning_chain_async(request: ReasoningRequest) -> ReasoningResponse:
     return run_reasoning_chain(request)
+
+
+def run_reasoning_chain_events(request: ReasoningRequest) -> Iterator[dict[str, Any]]:
+    """
+    Yield SSE-friendly progress events while the reasoning chain runs.
+
+    Event types: phase, extraction, complete, error
+    """
+    try:
+        if _use_mock_mode():
+            yield {"type": "phase", "phase": "extracting", "message": "Reading your situation…"}
+            time.sleep(0.35)
+            result = run_mock_reasoning_chain(request)
+            if result.extraction:
+                yield {"type": "extraction", "data": result.extraction.model_dump()}
+            yield {
+                "type": "phase",
+                "phase": "modeling",
+                "message": "Modeling paths at 3 months, 1 year, and 3 years…",
+            }
+            time.sleep(0.55)
+            yield {
+                "type": "phase",
+                "phase": "validating",
+                "message": "Checking confidence and uncertainty…",
+            }
+            time.sleep(0.2)
+            yield {"type": "complete", "data": result.model_dump()}
+            return
+
+        client = _get_client()
+        yield {"type": "phase", "phase": "extracting", "message": "Reading your situation…"}
+        extraction = _extract_decision(client, request)
+        yield {"type": "extraction", "data": extraction.model_dump()}
+        yield {
+            "type": "phase",
+            "phase": "modeling",
+            "message": "Modeling paths at 3 months, 1 year, and 3 years…",
+        }
+
+        issues: list[str] = []
+        response: ReasoningResponse | None = None
+
+        for attempt in range(MAX_QUALITY_RETRIES + 1):
+            if attempt > 0:
+                yield {
+                    "type": "phase",
+                    "phase": "retrying",
+                    "message": "Tightening tradeoffs for your specific situation…",
+                    "attempt": attempt + 1,
+                }
+            response = _model_tradeoffs(
+                client,
+                request,
+                extraction,
+                retry_issues=issues if attempt > 0 else None,
+            )
+            yield {
+                "type": "phase",
+                "phase": "validating",
+                "message": "Checking confidence and uncertainty…",
+            }
+            issues = validate_reasoning(
+                response,
+                binding_constraint=extraction.binding_constraint,
+                personal_constraints=extraction.personal_constraints,
+                paths_to_model=extraction.paths_to_model,
+            )
+            if not issues:
+                break
+
+        if response is None:
+            yield {"type": "error", "detail": "Reasoning chain produced no response."}
+            return
+
+        yield {
+            "type": "complete",
+            "data": _attach_extraction(response, extraction).model_dump(),
+        }
+    except RuntimeError as exc:
+        detail = str(exc)
+        yield {
+            "type": "error",
+            "detail": detail,
+            "quota": "insufficient_quota" in detail.lower() or "429" in detail,
+        }
+    except Exception as exc:
+        yield {"type": "error", "detail": f"Reasoning failed: {exc}"}

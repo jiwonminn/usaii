@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { runReasoning } from "../api";
+import LoadingIndicator from "./LoadingIndicator";
 
 const TIME_LABELS = {
   "3_months": "3 months",
@@ -7,10 +8,16 @@ const TIME_LABELS = {
   "3_years":  "3 years",
 };
 
-export default function WhatIfExplorer({ originalResponse, userDescription }) {
+export default function WhatIfExplorer({
+  originalResponse,
+  userDescription,
+  structuredContext = {},
+  isLive = true,
+}) {
   const [inputValue,    setInputValue]    = useState("");
   const [whatIfResult,  setWhatIfResult]  = useState(null);
   const [isLoading,     setIsLoading]     = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState(null);
   const [error,         setError]         = useState(null);
 
   const claims = originalResponse?.claims ?? [];
@@ -25,18 +32,25 @@ export default function WhatIfExplorer({ originalResponse, userDescription }) {
     if (!assumption || isLoading) return;
 
     setIsLoading(true);
+    setLoadingMessage(null);
     setError(null);
     setWhatIfResult(null);
 
     try {
-      const result = await runReasoning({
+      const { response: result } = await runReasoning({
         userDescription,
+        structuredContext,
         whatIfAssumption: assumption,
+        onProgress(event) {
+          if (event.type === "phase" && event.message) {
+            setLoadingMessage(event.message);
+          }
+        },
       });
       setWhatIfResult(result);
     } catch (err) {
       const msg = (err?.message ?? "").toLowerCase();
-      if (msg.includes("429") || msg.includes("quota")) {
+      if (err?.status === 429 || msg.includes("429") || msg.includes("quota")) {
         setError(
           "API quota reached — add billing at platform.openai.com, or set VITE_FORCE_MOCK=true for offline dev."
         );
@@ -45,6 +59,7 @@ export default function WhatIfExplorer({ originalResponse, userDescription }) {
       }
     } finally {
       setIsLoading(false);
+      setLoadingMessage(null);
     }
   }
 
@@ -62,6 +77,11 @@ export default function WhatIfExplorer({ originalResponse, userDescription }) {
           Pick one of the AI's claims below, or type your own. The engine will re-run
           the analysis with that assumption changed and show you how the paths shift.
         </p>
+        {!isLive && (
+          <p className="what-if-explorer__mock-note">
+            Using sample data — what-if reruns show layout only until the live API responds.
+          </p>
+        )}
       </header>
 
       {claims.length > 0 && (
@@ -108,6 +128,18 @@ export default function WhatIfExplorer({ originalResponse, userDescription }) {
           </button>
         </div>
       </form>
+
+      {isLoading && (
+        <LoadingIndicator
+          className="what-if-explorer__loading"
+          message={loadingMessage}
+          messages={[
+            "Re-running analysis with your assumption…",
+            "Shifting outcomes across all paths…",
+            "Updating confidence levels…",
+          ]}
+        />
+      )}
 
       {error && (
         <p className="what-if-explorer__error" role="alert">

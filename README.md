@@ -216,6 +216,8 @@ Request:
 
 Response: `ReasoningResponse` (see `backend/schemas.py`), including optional `extraction` from Phase 1 for context cards.
 
+**`POST /api/reason/stream`** — same request body; returns Server-Sent Events with `phase`, `extraction`, `complete`, and `error` events so the frontend can show live progress.
+
 **`GET /health`** — server status check.
 
 ---

@@ -3,42 +3,57 @@
  * Uses Phase 1 `extraction` from the API when present; falls back to
  * heuristics over the final response for mock/offline mode.
  */
-export default function ContextCards({ response }) {
+export default function ContextCards({ response, structuredContext }) {
   if (!response) return null;
 
   const ext = response.extraction;
+  const ctx = structuredContext ?? {};
   const { core_decision, paths } = response;
+
+  const bindingConstraint =
+    ext?.binding_constraint ||
+    (ctx.constraints?.length ? ctx.constraints.join(" · ") : null);
+  const personalConstraints =
+    ext?.personal_constraints?.length > 0
+      ? ext.personal_constraints
+      : ctx.constraints ?? [];
+  const pathsCompared =
+    (paths || []).map((p) => p.name).join("  vs.  ") ||
+    ext?.paths_to_model?.join("  vs.  ") ||
+    ctx.paths_being_compared?.join("  vs.  ");
 
   const cards = [
     (ext?.core_decision || core_decision) && {
       label: "The decision",
       value: ext?.core_decision || core_decision,
     },
-    (paths?.length || ext?.paths_to_model?.length) && {
+    pathsCompared && {
       label: "Paths being compared",
-      value: (paths || [])
-        .map((p) => p.name)
-        .join("  vs.  ") || ext?.paths_to_model?.join("  vs.  "),
+      value: pathsCompared,
     },
-    ext?.binding_constraint && {
+    bindingConstraint && {
       label: "What's limiting your options",
-      value: ext.binding_constraint,
+      value: bindingConstraint,
     },
-    ext?.personal_constraints?.length > 0 && {
+    personalConstraints.length > 0 && {
       label: "Personal constraints",
-      value: ext.personal_constraints.join(" · "),
+      value: personalConstraints.join(" · "),
     },
-    ext?.why_decision_is_hard && {
-      label: "Why this is hard",
-      value: ext.why_decision_is_hard,
+    (ext?.why_decision_is_hard || ctx.stakes) && {
+      label: ext?.why_decision_is_hard ? "Why this is hard" : "What's at stake",
+      value: ext?.why_decision_is_hard || ctx.stakes,
     },
-    !ext && extractConstraintsFallback(response) && {
+    (ctx.timeline_pressure || extractTimelineFallback(response)) && {
+      label: "Timeline pressure",
+      value: ctx.timeline_pressure || extractTimelineFallback(response),
+    },
+    ctx.values?.length > 0 && {
+      label: "Values that matter",
+      value: ctx.values.join(" · "),
+    },
+    !ext && !bindingConstraint && extractConstraintsFallback(response) && {
       label: "What's limiting your options",
       value: extractConstraintsFallback(response),
-    },
-    !ext?.why_decision_is_hard && extractTimelineFallback(response) && {
-      label: "Timeline pressure",
-      value: extractTimelineFallback(response),
     },
   ].filter(Boolean);
 

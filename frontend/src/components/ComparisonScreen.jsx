@@ -3,7 +3,7 @@ import PathColumn from "./PathColumn";
 
 const ACCENTS = ["--clay", "--teal", "--signal-low"];
 
-export default function ComparisonScreen({ response, onReset, children }) {
+export default function ComparisonScreen({ response, onReset, structuredContext, children }) {
   if (!response) return null;
 
   const { decision_summary, paths, cross_path_insights, questions_to_ask, disclaimer, what_if_impact } =
@@ -17,7 +17,7 @@ export default function ComparisonScreen({ response, onReset, children }) {
 
       <p className="comparison__summary">{decision_summary}</p>
 
-      <ContextCards response={response} />
+      <ContextCards response={response} structuredContext={structuredContext} />
 
       {what_if_impact && (
         <div className="what-if-banner">
@@ -32,7 +32,6 @@ export default function ComparisonScreen({ response, onReset, children }) {
         ))}
       </div>
 
-      {/* Slot for Person 2's What-If Explorer */}
       {children}
 
       {cross_path_insights?.length > 0 && (

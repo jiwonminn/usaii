@@ -107,6 +107,169 @@
   cursor: not-allowed;
 }
 
+.intake__loading {
+  min-height: 220px;
+}
+
+.intake__details {
+  border-top: 1px solid var(--ink-line);
+  padding: 0 16px 4px;
+}
+
+.intake__details-toggle {
+  background: none;
+  border: none;
+  color: var(--teal);
+  font-size: 13px;
+  padding: 12px 4px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.intake__details-toggle:hover {
+  text-decoration: underline;
+}
+
+.intake__details-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 12px;
+}
+
+.intake__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--parchment-dim);
+}
+
+.intake__field span {
+  font-weight: 500;
+}
+
+.intake__field input,
+.intake__field textarea {
+  background: var(--ink);
+  border: 1px solid var(--ink-line);
+  border-radius: 4px;
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.intake__field input:focus,
+.intake__field textarea:focus {
+  outline: 1px solid var(--teal);
+}
+
+.intake__field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .intake__field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Loading indicator ---------- */
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  background: var(--ink-raised);
+  text-align: center;
+}
+
+.loading-indicator__pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: loading-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.loading-indicator__message {
+  font-size: 15px;
+  color: var(--parchment);
+  margin: 0;
+}
+
+.loading-indicator__hint {
+  font-size: 13px;
+  color: var(--parchment-dim);
+  margin: 0;
+}
+
+.loading-indicator__preview {
+  max-width: 420px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--parchment-dim);
+  border-top: 1px solid var(--ink-line);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.loading-indicator__preview p {
+  margin: 0 0 6px;
+}
+
+.loading-indicator__preview strong {
+  color: var(--parchment);
+  font-weight: 600;
+}
+
+.data-source-banner {
+  background: var(--ink-raised);
+  border: 1px solid var(--clay);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--parchment-dim);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.data-source-banner strong {
+  display: block;
+  color: var(--clay);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.data-source-banner p {
+  margin: 0;
+}
+
+.mock-features-note {
+  border: 1px dashed var(--ink-line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--parchment-dim);
+  line-height: 1.55;
+  margin: 24px 0;
+}
+
 /* ---------- Context cards ---------- */
 
 .context-cards {
@@ -237,12 +400,25 @@
 }
 
 .timeline-row {
-  padding: 0 0 20px 14px;
-  border-left: 2px solid var(--ink-line);
+  display: flex;
+  gap: 12px;
+  padding: 0 0 20px;
 }
 
 .timeline-row:last-child {
   padding-bottom: 0;
+}
+
+.confidence-thread {
+  flex-shrink: 0;
+  width: 2px;
+  align-self: stretch;
+  min-height: 64px;
+}
+
+.confidence-thread svg {
+  height: 100%;
+  min-height: inherit;
 }
 
 .timeline-row__content {
@@ -298,6 +474,18 @@
   letter-spacing: 0.03em;
 }
 
+.timeline-row__unknowns {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--parchment-dim);
+  line-height: 1.45;
+}
+
+.timeline-row__unknowns li {
+  margin-bottom: 2px;
+}
+
 .path-column__section {
   margin-top: 22px;
   padding-top: 18px;
@@ -334,6 +522,10 @@
   font-size: 12px;
   color: var(--teal);
   word-break: break-all;
+}
+
+.verify-source--text {
+  color: var(--parchment-dim);
 }
 
 /* ---------- Cross-path insights / questions ---------- */
@@ -561,6 +753,13 @@
   color: var(--parchment-dim);
   line-height: 1.5;
   margin: 0;
+}
+
+.what-if-explorer__mock-note {
+  font-size: 12px;
+  color: var(--clay);
+  margin: 8px 0 0;
+  line-height: 1.45;
 }
 
 .what-if-explorer__error {

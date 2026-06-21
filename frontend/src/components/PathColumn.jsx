@@ -1,4 +1,4 @@
-import { CONFIDENCE_STYLE } from "./ConfidenceThread";
+import ConfidenceThread, { CONFIDENCE_STYLE } from "./ConfidenceThread";
 
 const TIME_LABELS = {
   "3_months": "3 months",
@@ -18,7 +18,7 @@ export default function PathColumn({ path, accentVar, index }) {
       <div className="path-column__timeline">
         {Object.entries(path.outcomes || {}).map(([key, outcome]) => (
           <div className="timeline-row" key={key}>
-            
+            <ConfidenceThread confidence={outcome.confidence} accentVar={accentVar} />
             <div className="timeline-row__content">
               <div className="timeline-row__time">{TIME_LABELS[key] || key}</div>
               <p className="timeline-row__summary">{outcome.summary}</p>
@@ -49,10 +49,28 @@ export default function PathColumn({ path, accentVar, index }) {
               >
                 {CONFIDENCE_STYLE[outcome.confidence]?.label || "Medium confidence"}
               </span>
+              {outcome.confidence !== "high" && outcome.unknown_factors?.length > 0 && (
+                <ul className="timeline-row__unknowns" aria-label="What could change this projection">
+                  {outcome.unknown_factors.map((factor, i) => (
+                    <li key={i}>{factor}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      {path.tradeoffs?.length > 0 && (
+        <section className="path-column__section">
+          <h4>Key tradeoffs</h4>
+          <ul>
+            {path.tradeoffs.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {path.hidden_considerations?.length > 0 && (
         <section className="path-column__section">
@@ -83,16 +101,19 @@ export default function PathColumn({ path, accentVar, index }) {
             {path.verify_before_deciding.map((v, i) => (
               <li key={i}>
                 <span>{v.item}</span>
-                {v.official_source && (
-                  <a
-                    href={v.official_source.startsWith("http") ? v.official_source : undefined}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="verify-source"
-                  >
-                    {v.official_source}
-                  </a>
-                )}
+                {v.official_source &&
+                  (v.official_source.startsWith("http") ? (
+                    <a
+                      href={v.official_source}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="verify-source"
+                    >
+                      {v.official_source}
+                    </a>
+                  ) : (
+                    <span className="verify-source verify-source--text">{v.official_source}</span>
+                  ))}
               </li>
             ))}
           </ul>

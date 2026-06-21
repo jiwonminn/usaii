@@ -1,6 +1,8 @@
 // Mirrors backend/mock.py — mock_filipino_nurse_response
 // Used so frontend dev/demo doesn't require the live API or OpenAI billing.
 
+import { buildGenericMock } from "./buildGenericMock";
+
 export const mockResponse = {
   decision_summary:
     "With 3 months savings and two young children, a Filipino RN in Toronto must balance immediate household income against long-term nursing licensure. Neither path is risk-free.",
@@ -249,110 +251,5 @@ export const mockResponse = {
   },
 };
 
-// Generic fallback for any input that doesn't mention nurse/CNO/PSW —
-// mirrors backend/mock.py's run_mock_reasoning_chain generic branch.
-export const genericMockResponse = {
-  decision_summary:
-    "Mock response for local development — connect the live API (or add billing) for real AI reasoning on this scenario.",
-  core_decision: "Paths extracted from your input (mock)",
-  paths: [
-    {
-      name: "Path A",
-      description: "First option inferred from your description.",
-      outcomes: {
-        "3_months": {
-          summary: "Short-term projection A — placeholder, not real reasoning.",
-          financial_estimate: "TBD",
-          career_impact: "TBD",
-          personal_impact: "TBD",
-          confidence: "low",
-          unknown_factors: ["Mock data — this scenario has no dedicated mock response yet"],
-        },
-        "1_year": {
-          summary: "Medium-term projection A — placeholder, not real reasoning.",
-          financial_estimate: "TBD",
-          career_impact: "TBD",
-          personal_impact: "TBD",
-          confidence: "low",
-          unknown_factors: ["Mock data — this scenario has no dedicated mock response yet"],
-        },
-        "3_years": {
-          summary: "Long-term projection A — placeholder, not real reasoning.",
-          financial_estimate: "TBD",
-          career_impact: "TBD",
-          personal_impact: "TBD",
-          confidence: "low",
-          unknown_factors: ["Mock data — this scenario has no dedicated mock response yet"],
-        },
-      },
-      tradeoffs: ["Mock tradeoff — connect the live API for real analysis"],
-      hidden_considerations: ["Replace mock mode before demo submission"],
-      what_you_give_up: ["Unknown in mock mode"],
-      verify_before_deciding: [
-        {
-          item: "Verify key assumptions with official sources",
-          official_source: "https://www.canada.ca/",
-          confidence: "low",
-        },
-      ],
-    },
-    {
-      name: "Path B",
-      description: "Second option inferred from your description.",
-      outcomes: {
-        "3_months": {
-          summary: "Short-term projection B — placeholder, not real reasoning.",
-          financial_estimate: "TBD",
-          career_impact: "TBD",
-          personal_impact: "TBD",
-          confidence: "low",
-          unknown_factors: ["Mock data — this scenario has no dedicated mock response yet"],
-        },
-        "1_year": {
-          summary: "Medium-term projection B — placeholder, not real reasoning.",
-          financial_estimate: "TBD",
-          career_impact: "TBD",
-          personal_impact: "TBD",
-          confidence: "low",
-          unknown_factors: ["Mock data — this scenario has no dedicated mock response yet"],
-        },
-        "3_years": {
-          summary: "Long-term projection B — placeholder, not real reasoning.",
-          financial_estimate: "TBD",
-          career_impact: "TBD",
-          personal_impact: "TBD",
-          confidence: "low",
-          unknown_factors: ["Mock data — this scenario has no dedicated mock response yet"],
-        },
-      },
-      tradeoffs: ["Mock tradeoff — connect the live API for real analysis"],
-      hidden_considerations: ["Replace mock mode before demo submission"],
-      what_you_give_up: ["Unknown in mock mode"],
-      verify_before_deciding: [],
-    },
-  ],
-  cross_path_insights: [],
-  questions_to_ask: [],
-  claims: [
-    {
-      text: "This output was generated in mock mode without calling the real reasoning engine",
-      confidence: "high",
-      unknown_factors: ["All scenario-specific reasoning"],
-      anchored_to: "Mock mode — no live API call",
-    },
-  ],
-  global_uncertainty_flags: ["Entire analysis is placeholder mock data"],
-  what_if_impact: null,
-  disclaimer:
-    "This is a projection based on what you have shared — not a guarantee. Your situation may differ. Only you can make the final decision.",
-  extraction: {
-    core_decision: "Paths extracted from your input (mock)",
-    binding_constraint: "Unknown — connect live API",
-    why_decision_is_hard: "Mock mode cannot extract real constraints from your description.",
-    personal_constraints: [],
-    paths_to_model: ["Path A", "Path B"],
-    values: [],
-    domain: "mock",
-    non_obvious_risk_signals: ["Replace mock mode before demo submission"],
-  },
-};
+// Legacy export — prefer buildGenericMock(userDescription) with the user's text.
+export const genericMockResponse = buildGenericMock("");
