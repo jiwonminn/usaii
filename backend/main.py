@@ -12,13 +12,22 @@ from fastapi.responses import StreamingResponse
 
 load_dotenv()
 
+from backend.context_structuring import incorporate_followup_answers, structure_user_input
 from backend.engine import run_reasoning_chain, run_reasoning_chain_events
-from backend.schemas import ReasoningRequest, ReasoningResponse
+from backend.input_guard import guard_input
+from backend.schemas import (
+    FollowUpQuestionOut,
+    FollowUpRequest,
+    ReasoningRequest,
+    ReasoningResponse,
+    StructureRequest,
+    StructureResponse,
+)
 
 app = FastAPI(
     title="Life Decision Simulator API",
     description="AI reasoning engine for comparing life/career paths with honest uncertainty.",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 app.add_middleware(
@@ -52,9 +61,76 @@ def health() -> dict[str, str | bool]:
     }
 
 
+# --- Person 4: Context Structuring endpoints ---
+
+
+@app.post("/api/structure", response_model=StructureResponse)
+def structure(request: StructureRequest) -> StructureResponse:
+    """Step 1: validate input + extract structured context + generate follow-up questions.
+
+    Frontend calls this BEFORE /api/reason. Returns structured context the
+    frontend can show in context cards, plus follow-up questions to fill gaps.
+    """
+    guard = guard_input(request.user_description)
+    if not guard.ok:
+        raise HTTPException(status_code=422, detail=guard.issues)
+
+    try:
+        result = structure_user_input(guard.cleaned_text)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return StructureResponse(
+        structured_context=result.context,
+        follow_up_questions=[
+            FollowUpQuestionOut(question=q.question, why_it_matters=q.why_it_matters)
+            for q in result.follow_up_questions
+        ],
+        completeness_score=result.completeness_score,
+        intake_summary=result.intake_summary,
+        warnings=guard.warnings,
+    )
+
+
+@app.post("/api/followup", response_model=StructureResponse)
+def followup(request: FollowUpRequest) -> StructureResponse:
+    """Step 2 (optional): merge user's follow-up answers into structured context.
+
+    Returns updated context + any remaining follow-up questions (usually 0).
+    """
+    try:
+        result = incorporate_followup_answers(
+            user_description=request.user_description,
+            current_context=request.structured_context,
+            answers=request.answers,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return StructureResponse(
+        structured_context=result.context,
+        follow_up_questions=[
+            FollowUpQuestionOut(question=q.question, why_it_matters=q.why_it_matters)
+            for q in result.follow_up_questions
+        ],
+        completeness_score=result.completeness_score,
+        intake_summary=result.intake_summary,
+        warnings=[],
+    )
+
+
+# --- Person 3: Reasoning endpoint (unchanged logic, better error handling) ---
+
+
 @app.post("/api/reason", response_model=ReasoningResponse)
 def reason(request: ReasoningRequest) -> ReasoningResponse:
     """Run the full reasoning chain. Supports optional what_if_assumption for Person 2's explorer."""
+    guard = guard_input(request.user_description)
+    if not guard.ok:
+        raise HTTPException(status_code=422, detail=guard.issues)
+
+    request.user_description = guard.cleaned_text
+
     try:
         return run_reasoning_chain(request)
     except RuntimeError as exc:
